@@ -10,12 +10,12 @@ const Header = ({ setPubAddress }) => {
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
-        // Request account access if needed
         const accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
-        // Get the first account
         setAccount(accounts[0]);
+        // Save the connected account to localStorage
+        localStorage.setItem("connectedAccount", accounts[0]);
       } catch (error) {
         console.error("Error connecting to MetaMask:", error);
       }
@@ -25,22 +25,89 @@ const Header = ({ setPubAddress }) => {
   };
 
   useEffect(() => {
+    const checkConnection = async () => {
+      // Check if MetaMask is installed
+      if (window.ethereum) {
+        try {
+          // Check if we have a stored account
+          const storedAccount = localStorage.getItem("connectedAccount");
+
+          if (storedAccount) {
+            // Verify if the account is still connected to MetaMask
+            const accounts = await window.ethereum.request({
+              method: "eth_accounts",
+            });
+
+            if (accounts.length > 0) {
+              // If the stored account matches any of the current MetaMask accounts
+              if (accounts.includes(storedAccount)) {
+                setAccount(storedAccount);
+              } else {
+                // If the stored account is no longer available, update with the new primary account
+                setAccount(accounts[0]);
+                localStorage.setItem("connectedAccount", accounts[0]);
+              }
+            } else {
+              // No accounts available, clear storage
+              localStorage.removeItem("connectedAccount");
+              setAccount(null);
+            }
+          }
+        } catch (error) {
+          console.error("Error checking wallet connection:", error);
+          localStorage.removeItem("connectedAccount");
+          setAccount(null);
+        }
+      }
+    };
+
+    checkConnection();
+
+    // Listen for account changes
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          localStorage.setItem("connectedAccount", accounts[0]);
+        } else {
+          setAccount(null);
+          localStorage.removeItem("connectedAccount");
+        }
+      });
+
+      // Listen for chain changes
+      window.ethereum.on("chainChanged", () => {
+        // Reload the page on chain change as recommended by MetaMask
+        window.location.reload();
+      });
+    }
+
+    // Cleanup listeners when component unmounts
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener("accountsChanged", () => {});
+        window.ethereum.removeListener("chainChanged", () => {});
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (account) {
-      // console.log("Connected account:", account);
       setPubAddress(account);
     }
-  }, [account]);
+  }, [account, setPubAddress]);
 
   return (
     <header className="flex justify-between items-center p-4 bg-gray-800 text-white">
-      <h1 className="m-0 text-5xl font-bold min-w-fit">Solidity dApp Template</h1>
+      <h1 className="m-0 text-5xl font-bold min-w-fit">
+        Solidity dApp Template
+      </h1>
       <div
         onClick={() => handleOpenMenu()}
         className="text-4xl absolute top-4 right-3 md:hidden cursor-pointer"
       >
         <ion-icon name={open ? "close" : "menu"}></ion-icon>
       </div>
-
       <div
         className={`${
           open ? "top-20 left-0" : "top-[-496px]"
@@ -58,16 +125,12 @@ const Header = ({ setPubAddress }) => {
               key={2}
               className="cursor-pointer border-blue-400 hover:bg-blue-500 hover:text-white text-black md:text-white  border rounded-lg p-2 hover:text-blue-500"
             >
-              <Link
-                to="https://github.com/bhupendra-chouhan/"
-                target="_blank"
-              >
+              <Link to="https://github.com/bhupendra-chouhan/" target="_blank">
                 GitHub
               </Link>
             </li>
           </ul>
         </div>
-
         <button
           onClick={connectWallet}
           className="px-4 py-2 bg-blue-400 text-gray-900 rounded-lg cursor-pointer text-base"

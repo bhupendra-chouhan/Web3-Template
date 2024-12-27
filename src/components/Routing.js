@@ -1,8 +1,7 @@
 import React from "react";
 import AppLayout from "./AppLayout";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-// import NftList from "./Body/NftList/NftList";
-// import CreateNft from "./Body/CreateNft/CreateNft";
+import Body from "./Body/Body";
 import Error from "./Error";
 
 const Routing = () => {
@@ -11,10 +10,10 @@ const Routing = () => {
       path: "/",
       element: <AppLayout />,
       children: [
-        // {
-        //   path: "/create-nft",
-        //   element: <CreateNft />,
-        // },
+        {
+          path: "/",
+          element: <Body />,
+        },
       ],
       errorElement: <Error />,
     },
