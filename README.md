@@ -1,4 +1,13 @@
 # Solidity-Web3-dApp Template
+
+---
+## Documentations:
+
+- Open-Campus Network Details: https://open-campus-docs.vercel.app/getting-started
+- Open-Campus Faucet: https://drpc.org/faucet/open-campus-codex
+- Open-Campus Explorer: https://opencampus-codex.blockscout.com/
+- Deploy smart-contract using HardHat (Video Tutorial and Documentation included): https://github.com/bhupendra-chouhan/hardhat-tutorial
+
 ---
 
 ### Setup guid:
